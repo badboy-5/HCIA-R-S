@@ -1,6 +1,6 @@
 	姓名：坏坏
 	学习时间：2020年3月24日
-	整理时间：2020年3月24日
+	整理时间：2020年3月27日
 
 # ICMP协议
 
@@ -33,6 +33,36 @@ arp /? 显示帮助
 - VLAN内代理
 - VLAN间代理
 - 路由式代理
+
+**实验**：如下配置两台PC，要求实现两台PC的互相通信。
+
+![1585201100238](E:%5CBad%5CPictures%5CTypora%20Picture%5C1585201100238.png)
+
+```bash
+为PC各自配置IP，网关设置为G0/0/0口和G0/0/1接口的IP
+配置AR3的接口IP，并开启相关的服务
+
+<Huawei>sy  //进入系统视图
+[Huawei]sys R1  //更改设备名称
+[R1]int g0/0/0  //进入g0/0/0接口
+[R1-GigabitEthernet0/0/0]ip add 192.168.10.254 24  //配置IP地址
+Mar 26 2020 13:31:37-08:00 R1 %%01IFNET/4/LINK_STATE(l)[0]:The line protocol IP on the interface GigabitEthernet0/0/0 has entered the UP state. 
+[R1-GigabitEthernet0/0/0]undo info en  //不会提示信息
+[R1-GigabitEthernet0/0/0]arp-proxy enable  //开启ARP代理
+[R1-GigabitEthernet0/0/0]int g0/0/1
+[R1-GigabitEthernet0/0/1]ip add 192.168.20.254 24
+[R1-GigabitEthernet0/0/1]arp-proxy enable 
+[R1-GigabitEthernet0/0/1]dis ip int bri  //查看所有的接口信息，检查IP地址是否配上以及接口是否双up
+Interface                         IP Address/Mask      Physical   Protocol  
+GigabitEthernet0/0/0              192.168.10.254/24    up         up     
+GigabitEthernet0/0/1              192.168.20.254/24    up         up     
+[R1-GigabitEthernet0/0/1]dis arp all  //查看ARP表项
+
+在PC上做连通性测试
+```
+
+> 1. 可以通过配置网关实现互通，网关地址为路由器与PC接口的IP
+> 2. 通过ARP代理实现互通，需要改变子网掩码使不同网段的IP处于同一网段，如本题中的可以将子网掩码修改为255.255.192.0，即可不通过网关实现互通
 
 ## 免费ARP
 
@@ -119,8 +149,7 @@ TCP流量控制也叫滑动窗口机制。
 	* 交换机根据MAC地址表将目标主机的回复信息单播转发给源主机
 
 ```bash
-关闭自协商
-undo negotiation auto
+undo negotiation auto  //关闭自协商
 speed 100  //把端口设置为100M
 duplex full  //端口设置为全双工
 ```
@@ -136,18 +165,6 @@ VLAN（Virtual Local Area Network），虚拟局域网。
 > - PRI：优先级
 > - CRI
 > - VLAN ID：VLAN号
-
-```bash
-undo info en  //不会提示信息
-vlan batch 5 to 15  //创建多个VLAN
-int e0/0/3  //进入接口
-dis port vlan  //查看接口类型
-port link-type access  //改变接口类型
-port default vlan 10  //将接口划分进VLAN10
-dis th  //查看当前接口下的配置
-q  //退出接口
-dis port vlan  //查看接口相关信息
-```
 
 ## 链路类型
 
@@ -243,6 +260,31 @@ cond1(no)->e
 	3. 把接口化劲VLAN：`port trunk allow-pass vlan 2 3`
 	4. 修改PVID：`port trunk pvid vlan x`
 
+**实验**：如下图配置PC的IP地址，需求相同VLAN可以互通，不同VLAN不能互通。
+
+![1585204012630](E:%5CBad%5CPictures%5CTypora%20Picture%5C1585204012630.png)
+
+```bash
+
+[SW1]dis vlan  //查看VLAN
+[SW1]vlan batch 10 20  //创建VLAN10、VLAN20
+[SW1]int e0/0/2  //进入e0/0/2接口
+[SW1-Ethernet0/0/2]port link-type access  //设置接口类型为Access
+[SW1-Ethernet0/0/2]port default vlan 10  //默认划分进VLAN10
+[SW1-Ethernet0/0/2]dis th  //查看当前接口下的配置命令
+[SW1-Ethernet0/0/2]q  //退出当前接口
+
+# 同样方法配置e0/0/3接口，划分进VLAN 20
+
+[SW1]int g0/0/1  //进入g0/0/1接口
+[SW1-GigabitEthernet0/0/1]port link-type trunk  //配置接口类型为Trunk
+[SW1-GigabitEthernet0/0/1]port trunk allow-pass vlan 10 20  //设置允许通过的VLAN为10 20 ，VLAN1默认允许通过
+
+#SW2相同的配置
+
+#做连通性测试
+```
+
 **Hybrid**（华为私有）
 
 - Hybrid端口既可以连接主机，也可以连接交换机
@@ -284,7 +326,298 @@ cond2(no)->op1
 cond1(no)->e
 ```
 
+**实验**：按照如下拓扑，配置相关IP地址。
+需求：
+1. 不同楼层的HR部门和市场部门实现部门内部通信
+2. 两部门之间不允许通信
+3. IT部门可以访问任意部门
 
+![1585207113199](E:%5CBad%5CPictures%5CTypora%20Picture%5C1585207113199.png)
+
+```bash
+[SW1]vlan batch 10 20 30  //创建VLAN10、20、30
+[SW1]dis vlan  //查看是否创建
+[SW1]int e0/0/3  //进入e0/0/3接口
+[SW1-Ethernet0/0/3]port hybrid untagged vlan 20 30  //设置允许通信的VLAN
+[SW1-Ethernet0/0/3]port hybrid pvid vlan 20  //设置PVID
+[SW1-Ethernet0/0/3]dis th  //查看当前接口下的命令
+
+#同样方法配置e0/0/2接口
+port hybrid pvid vlan 10
+port hybrid untagged vlan 10 30
+
+#配置e0/0/4接口
+port hybrid pvid vlan 30
+port hybrid untagged vlan 10 20 30
+
+#配置e/0/1接口
+port hybrid tagged vlan 10 20 30
+默认PVID是VLAN 1
+
+#SW2同样的配置
+
+#进行连通性测试
+```
+
+# VLAN的划分
+
+- 基于端口（最常见）
+- 基于MAC地址
+- 基于IP子网划分
+- 基于协议划分
+- 基于策略
+
+**配置命令**：
+
+```bash
+undo info en  //不会提示信息
+vlan 5  //创建一个VLAN
+vlan batch 5 to 15  //创建多个VLAN
+dis port vlan  //查看接口类型
+port link-type access  //配置access接口类型
+port link-type trunk  //配置trunk接口类型
+port trunk allow-pass vlan 10 20  //配置允许通过的VLAN
+port default vlan 10  //将接口划分进VLAN10
+dis th  //查看当前接口下的配置
+q  //退出接口
+dis port vlan  //查看接口相关信息
+```
+
+# VLAN间路由
+
+- 单臂路由
+- 三层交换
+
+**实验**：如下拓扑图，为PC配置IP地址。配置单臂路由，实现PC间互通。
+
+![1585237839901](E:%5CBad%5CPictures%5CTypora%20Picture%5C1585237839901.png)
+
+```bash
+#先给PC配置相应的IP地址，网关254
+
+[SW1]vlan batch 10 20 30  //创建VLAN
+[SW1]dis vlan  //查看VLAN是否创建成功
+[SW1]int g0/0/2  //进入g0/0/2接口
+[SW1-GigabitEthernet0/0/2]port link-type access  //配置接口类型为access
+[SW1-GigabitEthernet0/0/2]port default vlan 10  //划分默认VLAN
+
+#同样的方法配置g0/0/3、g0/0/4接口
+
+#配置trunk接口，并允许所有VLAN通过
+[SW1]int g0/0/1
+[SW1-GigabitEthernet0/0/1]port link-type trunk  //配置接口类型为trunk   
+[SW1-GigabitEthernet0/0/1]port trunk all vlan all  //允许所有VLAN通过
+
+#在R1上配置子接口
+[R1]int g0/0/0.1  //配置子接口
+[R1-GigabitEthernet0/0/0.1]ip add 192.168.10.254 24  //为子接口配置IP
+#同样方法配置其他子接口
+[R1]dis ip int br  //查看所有接口详细信息
+
+#封装VLAN号
+[R1]int g0/0/0.1
+[R1-GigabitEthernet0/0/0.1]dot1q termination vid 10  //指定vid，即这个接口对应的VLAN ID
+[R1-GigabitEthernet0/0/0.1]arp broadcast enable  //开启ARP的广播功能
+
+#同样方法配置其他的子接口
+
+#进行连通性测试
+```
+
+1. 把PC划分到相应的VLAN
+2. 把g0/0/1接口配置成trunk，并允许所有VLAN通过
+3. 配置路由器的子接口配置IP地址
+4. 子接口配置VLAN ID封装（`dot1q termination vid 10`）
+5. 接口开启arp广播（`arp broadcast enable`）
+
+**实验**：如下拓扑图，配置相应IP地址。配置三层交换，使PC间互通。
+
+![1585239930825](E:%5CBad%5CPictures%5CTypora%20Picture%5C1585239930825.png)
+
+```bash
+[SW1]int Vlanif 10  //创建VLAN10
+[SW1-Vlanif10]ip add 192.168.10.254 24  //配置IP地址
+[SW1-Vlanif10]int vlanif 20
+[SW1-Vlanif20]ip add 192.168.20.254 24
+[SW1-Vlanif20]int vlanif 30
+[SW1-Vlanif30]ip add 192.168.30.254 24
+
+#进行连通性测试
+```
+
+# STP原理与配置
+
+生成树协议（Spanning Tree Protocol），可以在提高可靠性的同时又能避免环路带来的各种问题。
+
+- 二层交换网络
+	* 交换机之间通过多条链路互联时，虽然能够提升网络可靠性，但同时也会带来环路问题
+- 广播风暴
+	* 环路会引起广播风暴
+	* 网络中的主机会受到重复数据帧
+- MAC地址表震荡
+
+## STP的作用
+
+通过阻塞端口来消除环路，并能够实现链路备份的目的。
+
+- 构建STP：
+1. 选举一个根桥（MAC地址越小越优）
+2. 每个非根交换机选举一个根端口（RP）
+3. 每个网段选举一个指定端口（DP）
+4. 阻塞非根、非指定端口（AP）
+
+- 根桥选举
+
+1. 每台交换机启动STP后，都会认为自己是根桥
+2. 交换机向外发送BPDU（桥协议数据单元），小的为根桥
+
+- 根端口选举
+
+非根交换机在选举根端口时分别依据该端口的根路径开销、对端BID、对端PID和本端PID
+
+> - 根路径开销：交换机去往根桥的路径的开销
+> - 对端BID：发送端的桥ID
+> - 对端PID：对端的端口ID
+> - 本端PID：本端的端口ID
+
+- 指定端口选举
+	* 非根交换机在选举指定端口（DP）时分别依据根路径开销、BID、PID
+	* 未被选举为根端口（RP）或指定端口（BP）的端口为预备端口（AP），将会被阻塞
+
+**实验**：
+
+![1585294890972](E:%5CBad%5CPictures%5CTypora%20Picture%5C1585294890972.png)
+
+SW1：4c1f-cc5c-74c7
+SW2：4c1f-cc2d-7013
+SW3：4c1f-cc80-7370
+SW4：4c1f-cc6f-1691
+
+1. 选举根桥
+	* 交换BPDU，比较BPDU，相同
+	* 比较MAC地址，SW2的MAC最小，选举为根桥
+2. 选举根端口
+	* 比较路径开销，SW1在1号线路到达根桥路径开销最小，所以SW1的1接口为RP（同理SW3的1接口、SW4的1接口都为RP）
+	* 如果路径开销相同，比较BID（优先级、MAC地址）
+	* 如果BID也相同，则比较PID（优先级、端口号）
+3. 选举指定端口
+	* 在网络上（每条线路上）选举指定端口
+	* 根桥开销为0，所以SW2的1、2、3接口都为DP
+	* 4号线路上走1、3线路开销相同，比较BID（优先级、MAC地址），SW1的MAC地址小，则SW1的2接口为DP，SW3的3接口为AP
+	* 5号线路上走2、3线路开销相同，比较BID（优先级、MAC地址），SW4的MAC地址小，则SW4的2接口为DP，SW3的2接口为AP
+
+```bash
+#查看MAC地址
+[SW1]dis stp  //查看MAC地址
+
+[SW1]dis stp bri  //查看SW1的STP
+ MSTID  Port                        Role  STP State     Protection
+   0    Ethernet0/0/1               ROOT  FORWARDING      NONE
+   0    Ethernet0/0/2               DESI  FORWARDING      NONE
+#Ethernet0/0/1为RP，FORWARDING为正常转发数据，Ethernet0/0/2为DP
+
+[SW2]dis stp bri  //查看SW2的STP
+ MSTID  Port                        Role  STP State     Protection
+   0    Ethernet0/0/1               DESI  FORWARDING      NONE
+   0    Ethernet0/0/2               DESI  FORWARDING      NONE
+   0    Ethernet0/0/3               DESI  FORWARDING      NONE
+   0    Ethernet0/0/4               DESI  FORWARDING      NONE
+   0    Ethernet0/0/5               DESI  FORWARDING      NONE
+
+[SW3]dis stp bri  //查看SW3的STP
+ MSTID  Port                        Role  STP State     Protection
+   0    Ethernet0/0/1               ROOT  FORWARDING      NONE
+   0    Ethernet0/0/2               ALTE  DISCARDING      NONE
+   0    Ethernet0/0/3               ALTE  DISCARDING      NONE
+#Ethernet0/0/1为RP，数据正常转发，Ethernet0/0/2和Ethernet0/0/3为AP，DISCARDING端口关闭，不转发数据
+
+[SW4]dis stp bri  //查看SW4的STP
+ MSTID  Port                        Role  STP State     Protection
+   0    Ethernet0/0/1               ROOT  FORWARDING      NONE
+   0    Ethernet0/0/2               DESI  FORWARDING      NONE
+```
+
+**拓展**：使SW1为根桥，SW3位次根桥
+
+
+```bash
+[SW1]stp root primary  //使SW1成为主根桥
+[SW1]dis stp  //查看cost优先级为0
+
+
+[SW3]stp root secondary  //使SW3成为次根桥
+[SW3]dis stp  //查看cost优先级为4096
+
+#增长为12次方增长，下一个是8192，一次类推
+
+[SW1]int e0/0/1
+[SW1-Ethernet0/0/1]stp cost ?  //修改接口开销
+  INTEGER<1-200000000>  Port path cost
+[SW1-Ethernet0/0/1]stp cost 55
+```
+
+## 端口状态转换
+
+- `Disabled` 关闭状态，端口禁用或链路失效
+- `Blocking` 启动状态，端口初始化或使能
+- `Listening` 侦听状态，端口被选为根端口或指定端口
+- `Learning` 学习MAC地址状态
+- `Forwarding` 数据转发状态
+
+> STP基于计时器，RSTP基于P/A
+
+# BPDU
+
+包含桥ID、路径开销、端口ID、计时器等参数
+
+- `Message Age` 生存时间
+- `Max Age` 最大生存时间
+- `Hello Time` 一般为2s
+- `Fwd Delay` 一般为15s
+
+## 计时器
+
+- BPDU间隔时间为`Hello Time`时间
+- 配置BPDU报文每经过一个交换机，Message Age都加1
+- 当Message Age大于Max Age，非根桥会丢弃该配置BPDU
+
+## 根桥故障
+
+- 非根桥会在BPDU老化之后开始根桥的重新选举
+
+## 直连链路故障
+
+- 检测到直连链路物理故障后，会将预备端口转换为根端口
+- 预备端口会在30s后恢复到转发状态
+
+## 非直连链路故障
+
+- 预备端口恢复到转发状态大约需要50秒
+
+
+    以上内容均属原创，如有不详或错误，敬请指出。
+
+<div class="post-copyright">
+    <div class="author">
+        <b>本文作者： </b>
+        <a href="https://blog.csdn.net/qq_45668124" target="_blank">
+            <b>坏坏</b> 
+        </a> 
+    </div>
+    <div class="link">
+        <b>本文链接： </b>
+			https://blog.csdn.net/qq_45668124/article/details/105144472 
+    </div>
+    <div class="copyright">
+        <b> 版权声明： </b>
+        本博客所有文章除特别声明外，均采用  
+        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+            CC BY-NC-SA 4.0 
+        </a> 许可协议。转载请注明出处！
+    </div>
+</div>
+
+​	 
 
 
 
