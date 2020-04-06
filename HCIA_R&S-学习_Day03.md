@@ -201,7 +201,7 @@ ip route-static 2.2.2.2 255.255.255.255 192.168.12.2
 ip route-static 3.3.3.3 255.255.255.255 192.168.13.3
 ip route-static 4.4.4.4 255.255.255.255 192.168.12.2 preference 10
 ip route-static 4.4.4.4 255.255.255.255 192.168.13.3 preference 100
-ip route-static 192.168.24.0 255.255.255.0 192.168.12.2 preference 10
+ip route-static 192.168.24.0 255.255.255.0 192.168.12.2
 ip route-static 192.168.34.0 255.255.255.0 192.168.12.2
 
 # R2上的静态路由配置
@@ -221,8 +221,8 @@ ip route-static 192.168.24.0 255.255.255.0 192.168.34.4
 # R4上的静态路由配置
 ip route-static 1.1.1.1 255.255.255.255 192.168.34.3 preference 10
 ip route-static 2.2.2.2 255.255.255.255 192.168.24.2
-ip route-static 3.3.3.3 255.255.255.255 192.168.34.3 preference 10
-ip route-static 192.168.12.0 255.255.255.0 192.168.34.3
+ip route-static 3.3.3.3 255.255.255.255 192.168.34.3
+ip route-static 192.168.12.0 255.255.255.0 192.168.34.3 preference 10
 ip route-static 192.168.12.0 255.255.255.0 192.168.24.2
 ip route-static 192.168.13.0 255.255.255.0 192.168.34.3 preference 10
 
@@ -252,6 +252,7 @@ ip route-static 192.168.13.0 255.255.255.0 192.168.34.3 preference 10
 - RIP工作原理：
 	* 路由器运行RIP后，会首先发送路由更新请求（request），收到请求的路由器会发送自己的RIP路由（response）进行相应
 	* 网络稳定后，路由器会周期性发送路由更新信息
+	* RIP采用的是UDP传输协议，UDP端口号为520
 
 **实验**：如图配置IP地址
 
@@ -289,5 +290,123 @@ ip route-static 192.168.13.0 255.255.255.0 192.168.34.3 preference 10
 |     3.0.0.0     | G0/0/0    | 2    |          |           |      | 1.0.0.0  | G0/0/0    | 2    |
 
 > 当路由器学习到拓扑中所有的路由之后，会每隔30s向邻居发送一次自己完整的路由表
+
+**RIP度量值**
+
+- RIP使用跳数作为度量值来衡量到达目的网络的距离
+- 缺省情况下，直连网络的路由跳数为0。超过15跳为网络不可达
+
+## RIPv1 & RIPv2
+
+| RIPv1 | RIPv2 |
+| ----- | ---- |
+| 有类别路由协议：无掩码 | 无类别路由协议：有掩码 |
+|RIPv1是有类别路由协议，不支持VLSM和CIDR|RIPv2为无类别路由协议，支持VLSM，支持路由聚合与CIDR|
+|以广播形式发送报文|支持以广播或者组播（224.0.0.9）方式发送报文|
+|不支持认证|支持明文认证和MD5密文认证|
+
+> - RIPv2默认发组播
+
+- RIPv2报文相比于RIPv1报文多了以下字段：
+	* `Route Tag`路由标记
+	* `Subnet Mask`子网掩码
+	* `Next Hop`下一跳
+- RIPv2支持手动汇总，减少路由表的大小，提高路由器性能
+- RIPv2支持认证（明文和MD5）
+
+```bash
+# 配置RIP认证方式
+[R1]int g0/0/0
+[R1-GigabitEthernet0/0/0]rip authentication-mode simple cipher huawei
+[R1-GigabitEthernet0/0/0]q
+[R1]
+```
+
+**RIP环路**
+
+- 网络发生故障时，RIP网络有可能会产生环路
+- 环路避免：
+	* **水平分割**：路由器从某个接口学到的路由，不会从该接口再发回给领居路由
+	* **毒性逆转**：路由从某个接口学到路由后，将该路由的跳数设置为16，并从原接收接口发回给领居路由器
+	* **触发更新**：当路由信息发生变化时，立即向邻居设备发送触发更新报文（避免环路产生）
+
+```bash
+# RIP配置
+[R1]rip  //进入RIP协议视图
+[R1-rip-1]version 2  //更改V2的版本
+[R1-rip-1]network 10.0.0.0  //对外宣告主网
+
+# 配置Metricin（度量值）
+[R1]int g0/0/0
+[R1-GigabitEthernet0/0/0]rip metricin 2  //更改进接口的度量值
+[R1-GigabitEthernet0/0/0]rip metricout 2  //更改出接口的度量值
+
+# 水平分割 & 毒性逆转
+[R1-GigabitEthernet0/0/0]rip split-horizon  //配置水平分割，默认开启
+[R1-GigabitEthernet0/0/0]rip poison-reverse  //配置毒性逆转，默认开启
+# 当两个特性都配置时，只有毒性逆转会生效
+
+# 配置RIP报文的收发
+[R1-GigabitEthernet0/0/0]undo rip output  //禁止发送RIP报文
+[R1-GigabitEthernet0/0/0]undo rip input  //禁止接收RIP报文
+
+# 抑制接口，命令优先级大于rip in/output
+[R1]rip  //进入接口视图
+[R1-rip-1]silent-interface g0/0/0  //抑制接口，只接受RIP报文，不发送
+```
+
+**RIP更新与维护**
+
+- `Period Update Timer`周期性更新路由表时间为30s
+- `Age Time`老化时间，路由信息在路由器存活180s
+- `Garbage-Collect Timer`垃圾收集时间，当接口发生故障，经过120s就会删掉此接口的路由信息
+
+> 当接口发生故障时，30s后没有收到邻居的路由表信息，会判断邻居出现故障，等待180s，180s后，如果还没有收到邻居的路由信息，会进入120s倒计时，在120s内仍然没有和邻居建立连接，就会从自己的路由表中删除改玲聚德路由信息。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

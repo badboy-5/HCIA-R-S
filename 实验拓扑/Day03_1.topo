@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UNICODE" ?>
+<topo version="1.3.00.200T">
+    <devices>
+        <dev id="1021D0EC-6EF1-4a3a-A164-BB49E7057587" name="AR1" poe="0" model="AR2220" settings="" system_mac="00-E0-FC-F3-1B-68" com_port="2000" bootmode="0" cx="199.000000" cy="207.000000" edit_left="226" edit_top="261">
+            <slot number="slot17" isMainBoard="1">
+                <interface sztype="Ethernet" interfacename="GE" count="1" />
+                <interface sztype="Ethernet" interfacename="GE" count="2" />
+            </slot>
+        </dev>
+        <dev id="F0927452-EF89-4770-A4F1-0157906351C5" name="AR4" poe="0" model="AR2220" settings="" system_mac="00-E0-FC-4D-5B-75" com_port="2003" bootmode="0" cx="679.000000" cy="207.000000" edit_left="706" edit_top="261">
+            <slot number="slot17" isMainBoard="1">
+                <interface sztype="Ethernet" interfacename="GE" count="1" />
+                <interface sztype="Ethernet" interfacename="GE" count="2" />
+            </slot>
+        </dev>
+        <dev id="6F6EC159-1030-42a1-A352-E6E53A15A5F7" name="AR2" poe="0" model="AR2220" settings="" system_mac="00-E0-FC-78-14-05" com_port="2001" bootmode="0" cx="439.000000" cy="127.000000" edit_left="466" edit_top="181">
+            <slot number="slot17" isMainBoard="1">
+                <interface sztype="Ethernet" interfacename="GE" count="1" />
+                <interface sztype="Ethernet" interfacename="GE" count="2" />
+            </slot>
+        </dev>
+        <dev id="31FC0725-7932-41be-AC2D-634161531AC8" name="AR3" poe="0" model="AR2220" settings="" system_mac="00-E0-FC-CB-17-61" com_port="2002" bootmode="0" cx="439.000000" cy="287.000000" edit_left="466" edit_top="341">
+            <slot number="slot17" isMainBoard="1">
+                <interface sztype="Ethernet" interfacename="GE" count="1" />
+                <interface sztype="Ethernet" interfacename="GE" count="2" />
+            </slot>
+        </dev>
+    </devices>
+    <lines>
+        <line srcDeviceID="1021D0EC-6EF1-4a3a-A164-BB49E7057587" destDeviceID="6F6EC159-1030-42a1-A352-E6E53A15A5F7">
+            <interfacePair lineName="Copper" srcIndex="0" srcBoundRectIsMoved="1" srcBoundRect_X="266.967712" srcBoundRect_Y="220.344101" srcOffset_X="-17.000000" srcOffset_Y="-22.000000" tarIndex="0" tarBoundRectIsMoved="1" tarBoundRect_X="425.032288" tarBoundRect_Y="167.655899" tarOffset_X="-42.000000" tarOffset_Y="-12.000000" />
+        </line>
+        <line srcDeviceID="6F6EC159-1030-42a1-A352-E6E53A15A5F7" destDeviceID="F0927452-EF89-4770-A4F1-0157906351C5">
+            <interfacePair lineName="Copper" srcIndex="1" srcBoundRectIsMoved="1" srcBoundRect_X="506.967712" srcBoundRect_Y="167.655899" srcOffset_X="-9.000000" srcOffset_Y="-15.000000" tarIndex="0" tarBoundRectIsMoved="1" tarBoundRect_X="665.032288" tarBoundRect_Y="220.344101" tarOffset_X="-25.000000" tarOffset_Y="-19.000000" />
+        </line>
+        <line srcDeviceID="F0927452-EF89-4770-A4F1-0157906351C5" destDeviceID="31FC0725-7932-41be-AC2D-634161531AC8">
+            <interfacePair lineName="Copper" srcIndex="1" srcBoundRectIsMoved="1" srcBoundRect_X="665.032288" srcBoundRect_Y="247.655899" srcOffset_X="-49.000000" srcOffset_Y="-16.000000" tarIndex="1" tarBoundRectIsMoved="1" tarBoundRect_X="506.967712" tarBoundRect_Y="300.344086" tarOffset_X="-18.000000" tarOffset_Y="-20.000000" />
+        </line>
+        <line srcDeviceID="31FC0725-7932-41be-AC2D-634161531AC8" destDeviceID="1021D0EC-6EF1-4a3a-A164-BB49E7057587">
+            <interfacePair lineName="Copper" srcIndex="0" srcBoundRectIsMoved="1" srcBoundRect_X="425.032288" srcBoundRect_Y="300.344086" srcOffset_X="-24.000000" srcOffset_Y="-18.000000" tarIndex="1" tarBoundRectIsMoved="1" tarBoundRect_X="266.967712" tarBoundRect_Y="247.655899" tarOffset_X="-6.000000" tarOffset_Y="-16.000000" />
+        </line>
+    </lines>
+    <shapes />
+    <txttips>
+        <txttip left="394" top="104" right="519" bottom="121" content="Loop：2.2.2.2/32" fontname="Consolas" fontstyle="0" editsize="100" txtcolor="-16777216" txtbkcolor="-7278960" charset="1" />
+        <txttip left="401" top="362" right="526" bottom="379" content="Loop：3.3.3.3/32" fontname="Consolas" fontstyle="0" editsize="100" txtcolor="-16777216" txtbkcolor="-7278960" charset="1" />
+        <txttip left="65" top="220" right="190" bottom="237" content="Loop：1.1.1.1/32" fontname="Consolas" fontstyle="0" editsize="100" txtcolor="-16777216" txtbkcolor="-7278960" charset="1" />
+        <txttip left="739" top="222" right="864" bottom="239" content="Loop：4.4.4.4/32" fontname="Consolas" fontstyle="0" editsize="100" txtcolor="-16777216" txtbkcolor="-7278960" charset="1" />
+        <txttip left="259" top="164" right="376" bottom="181" content="192.168.12.0/24" fontname="Consolas" fontstyle="0" editsize="100" txtcolor="-16777216" txtbkcolor="-7278960" charset="1" />
+        <txttip left="559" top="164" right="676" bottom="181" content="192.168.24.0/24" fontname="Consolas" fontstyle="0" editsize="100" txtcolor="-16777216" txtbkcolor="-7278960" charset="1" />
+        <txttip left="244" top="288" right="361" bottom="305" content="192.168.13.0/24" fontname="Consolas" fontstyle="0" editsize="100" txtcolor="-16777216" txtbkcolor="-7278960" charset="1" />
+        <txttip left="558" top="292" right="675" bottom="309" content="192.168.34.0/24" fontname="Consolas" fontstyle="0" editsize="100" txtcolor="-16777216" txtbkcolor="-7278960" charset="1" />
+        <txttip left="183" top="400" right="633" bottom="510" content="实验要求:&#x0D;&#x0A;1、每台设备配置一个环回地址(根据拓扑图配置)&#x0D;&#x0A;2、使用一个c类网段192.168.0.0为路由器的物理接口地址&#x0D;&#x0A;3、使用静态路由配置路由，要求所有路由器能够Ping通各自环回口&#x0D;&#x0A;4、要求R1优先选择R2到达R4&#x0D;&#x0A;5、要求R4优先选择R3到达R1&#x0D;&#x0A;" fontname="Consolas" fontstyle="0" editsize="100" txtcolor="-16777216" txtbkcolor="-7278960" charset="1" />
+    </txttips>
+</topo>
