@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UNICODE" ?>
+<topo version="1.3.00.200T">
+    <devices>
+        <dev id="1A703B32-0870-4fd5-BBE8-AC8AA9CADEA1" name="AR1" poe="0" model="AR2220" settings="" system_mac="00-E0-FC-B1-06-3E" com_port="2000" bootmode="0" cx="213.000000" cy="133.000000" edit_left="240" edit_top="187">
+            <slot number="slot17" isMainBoard="1">
+                <interface sztype="Ethernet" interfacename="GE" count="1" />
+                <interface sztype="Ethernet" interfacename="GE" count="2" />
+                <interface sztype="Serial" interfacename="Serial" count="2" />
+            </slot>
+            <slot isMainBoard="0" id="0" type="521" />
+        </dev>
+        <dev id="6F52CCD4-3C70-4f69-B93B-65566D7BF128" name="AR2" poe="0" model="AR2220" settings="" system_mac="00-E0-FC-A1-1E-9F" com_port="2001" bootmode="0" cx="533.000000" cy="133.000000" edit_left="560" edit_top="187">
+            <slot number="slot17" isMainBoard="1">
+                <interface sztype="Ethernet" interfacename="GE" count="1" />
+                <interface sztype="Ethernet" interfacename="GE" count="2" />
+                <interface sztype="Serial" interfacename="Serial" count="2" />
+            </slot>
+            <slot isMainBoard="0" id="0" type="521" />
+        </dev>
+    </devices>
+    <lines>
+        <line srcDeviceID="1A703B32-0870-4fd5-BBE8-AC8AA9CADEA1" destDeviceID="6F52CCD4-3C70-4f69-B93B-65566D7BF128">
+            <interfacePair lineName="Serial" srcIndex="3" srcBoundRectIsMoved="1" srcBoundRect_X="283.183777" srcBoundRect_Y="160.000000" srcOffset_X="-13.000000" srcOffset_Y="9.000000" tarIndex="3" tarBoundRectIsMoved="1" tarBoundRect_X="516.816223" tarBoundRect_Y="160.000000" tarOffset_X="-45.000000" tarOffset_Y="11.000000" />
+        </line>
+    </lines>
+    <shapes />
+    <txttips>
+        <txttip left="352" top="120" right="448" bottom="139" content="12.1.1.0/31" fontname="Consolas" fontstyle="0" editsize="110" txtcolor="-16777216" txtbkcolor="-7278960" charset="1" />
+    </txttips>
+</topo>
