@@ -2,7 +2,7 @@
 
 -----
 
-# 实验一
+# 静态路由
 
 - 配置接口IP地址
 
@@ -110,7 +110,7 @@ Info: Succeeded in modifying route.
 
 
 
-# 实验二
+# RIP
 
 - R1上的配置
 
@@ -174,7 +174,7 @@ Info: Succeeded in modifying route.
 [R3]ping 12.1.1.1
 ```
 
-# 实验三
+# 拓展：RIP
 
 - 配置IP地址
 
