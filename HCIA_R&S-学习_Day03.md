@@ -365,4 +365,3 @@ ip route-static 192.168.13.0 255.255.255.0 192.168.34.3 preference 10
 ![1586157605025](E:%5CBad%5CPictures%5CTypora%20Picture%5C1586157605025.png)
 
 > 本篇笔记中所有的实验源码均在`Day_03实验源码`中
-
