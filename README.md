@@ -12,6 +12,8 @@
 	* `HCIA_R&S-学习_Day0x`是对知识的一个整理笔记（可供参考）
 	* `Day_05实验源码_xxx`是实验的源码步骤（如果有不完整或可以优化的尽情补充）
 
+> 没有拓扑和实验源码的，可以参考CSDN，自己搭建拓扑，把部分源码在CSDN已经贴出
+
 <div class="post-copyright">
     <div class="author">
         <b>个人博客： </b><br />
