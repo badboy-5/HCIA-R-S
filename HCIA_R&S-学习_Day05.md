@@ -233,6 +233,26 @@ traffic-filter outbound acl 2000  //出方向调用2000规则
 [RTA-GigabitEthernet 0/0/0]traffic-filter outbound acl 3000  //出方向调用此ACL
 ```
 
+**实验**：如下拓扑图，配置IP地址，配置RIP，使PC间互通，通过配置ACL，阻止PC互通。
+
+![1586916070817](E:%5CBad%5CPictures%5CTypora%20Picture%5C1586916070817.png)
+
+**ACL控制访问FTP服务器**
+
+![1586941059894](E:%5CBad%5CPictures%5CTypora%20Picture%5C1586941059894.png)
+
+- 配置完成后是可以通过客户端访问到FTPServer的文件的
+
+![1586941045432](E:%5CBad%5CPictures%5CTypora%20Picture%5C1586941045432.png)
+
+- 配置ACL控制访问后，是无法访问FTP服务器的
+
+![1586941649605](E:%5CBad%5CPictures%5CTypora%20Picture%5C1586941649605.png)
+
+# 网络地址转换
+
+
+
 
 
 

@@ -285,23 +285,187 @@ DNS server........................: 114.114.114.114
 
 > NP阶段学习，这里不做详细说明
 
+# ACL
+
+## 控制PC间的互访
+
+- 配置接口地址
+
+```bash
+# R1
+[AR1]int g0/0/1
+[AR1-GigabitEthernet0/0/1]ip ad 192.168.1.254 24
+[AR1-GigabitEthernet0/0/1]int g0/0/0
+[AR1-GigabitEthernet0/0/0]ip ad 12.1.1.1 24
+[AR1-GigabitEthernet0/0/0]q   
+[AR1]
+
+# R2
+[AR2]int g0/0/0
+[AR2-GigabitEthernet0/0/0]ip ad 12.1.1.2 24
+[AR2-GigabitEthernet0/0/0]int g0/0/1
+[AR2-GigabitEthernet0/0/1]ip ad 23.1.1.2 24
+[AR2-GigabitEthernet0/0/1]q
+[AR2]
+
+# R3
+[AR3]int g0/0/0
+[AR3-GigabitEthernet0/0/0]ip ad 23.1.1.3 24
+[AR3-GigabitEthernet0/0/0]int g0/0/1
+[AR3-GigabitEthernet0/0/1]ip ad 192.168.2.254 24
+[AR3-GigabitEthernet0/0/1]q
+[AR3]
+```
+
+- 配置RIP
+
+```bash
+# R1
+[AR1]rip 1
+[AR1-rip-1]net 192.168.1.0
+[AR1-rip-1]net 12.0.0.0  
+
+# R2
+[AR2]rip 1
+[AR2-rip-1]net 12.0.0.0
+[AR2-rip-1]net 23.0.0.0
+
+# R3
+[AR3]rip 1
+[AR3-rip-1]net 192.168.2.0
+[AR3-rip-1]net 23.0.0.0
+```
+
+- PC做连通性测试
+
+```bash
+PC>ping 192.168.2.1
+
+Ping 192.168.2.1: 32 data bytes, Press Ctrl_C to break
+Request timeout!
+Request timeout!
+Request timeout!
+From 192.168.2.1: bytes=32 seq=4 ttl=125 time=16 ms
+From 192.168.2.1: bytes=32 seq=5 ttl=125 time=31 ms
+
+--- 192.168.2.1 ping statistics ---
+  5 packet(s) transmitted
+  2 packet(s) received
+  60.00% packet loss
+  round-trip min/avg/max = 0/23/31 ms
+```
+
+- AR2上配置ACL
+
+```bash
+[AR2]acl 2000
+[AR2-acl-basic-2000]rule deny source 192.168.1.0 0.0.0.255  //配置ACL
+[AR2-acl-basic-2000]rule permit  //放行其他的IP
+[AR2-acl-basic-2000]dis th  //查看配置
+[V200R003C00]
+#
+acl number 2000  
+ rule 5 deny source 192.168.1.0 0.0.0.255 
+ rule 10 permit 
+#
+return
+[AR2-acl-basic-2000]q
+[AR2]int g0/0/0
+[AR2-GigabitEthernet0/0/0]traffic-filter inbound acl 2000  //接口入方向调用ACL
+[AR2-GigabitEthernet0/0/0]q
+[AR2]
+```
+
+- PC上做连通性测试
+
+```bash
+PC>ping 192.168.2.1
+
+Ping 192.168.2.1: 32 data bytes, Press Ctrl_C to break
+Request timeout!
+Request timeout!
+Request timeout!
+Request timeout!
+Request timeout!
+
+--- 192.168.2.1 ping statistics ---
+  5 packet(s) transmitted
+  0 packet(s) received
+  100.00% packet loss
+```
+
+## 控制访问FTP服务器
+
+- 路由器配置互通
+
+```bash
+[AR1]int g0/0/1
+[AR1-GigabitEthernet0/0/1]ip add 192.168.1.254 24
+[AR1-GigabitEthernet0/0/1]int g0/0/0
+[AR1-GigabitEthernet0/0/0]ip ad 12.1.1.1 24
+[AR1-GigabitEthernet0/0/0]q
+[AR1]rip 1
+[AR1-rip-1]net 192.168.1.0
+[AR1-rip-1]net 12.0.0.0
+[AR1-rip-1]q
+[AR1]
 
 
+[AR2]int g0/0/0
+[AR2-GigabitEthernet0/0/0]ip ad 12.1.1.2 24
+[AR2-GigabitEthernet0/0/0]int g0/0/1
+[AR2-GigabitEthernet0/0/1]ip ad 23.1.1.2 24
+[AR2-GigabitEthernet0/0/1]q
+[AR2]rip 1
+[AR2-rip-1]net 12.0.0.0
+[AR2-rip-1]net 23.0.0.0 
+[AR2-rip-1]q
+[AR2]
 
+[AR3]int g0/0/0
+[AR3-GigabitEthernet0/0/0]ip ad 23.1.1.3 24
+[AR3-GigabitEthernet0/0/0]int g0/0/1
+[AR3-GigabitEthernet0/0/1]ip ad 192.168.2.254 24
+[AR3-GigabitEthernet0/0/1]q
+[AR3]rip 1
+[AR3-rip-1]net 192.168.2.0
+[AR3-rip-1]net 23.0.0.0
+[AR3-rip-1]q
+[AR3]
+```
 
+- Client与Server配置
 
+```bash
+# Client
+IP:192.168.1.1
+网关：192.168.1.254
 
+# Server基础配置：
+IP：192.168.2.100
+网关：192.168.2.254
 
+# Server服务器信息
+FTPServer——>配置——>添加FTP文件目录——>启动
+```
 
+- 在Client客户端登录FTP测试
 
+![1586941579423](E:%5CBad%5CPictures%5CTypora%20Picture%5C1586941579423.png)
 
+- 可以登录之后，在R3上设置ACL访问控制，禁止Client访问Server的FTP
 
+```bash
+[AR3]acl 3000  //配置ACL
+# 禁止192.168.1.0访问192.168.2.100的FTP服务器
+[AR3-acl-adv-3000]rule deny tcp source 192.168.1.0 0.0.0.255 destination 192.168.2.100 0 destination-port eq 21
+[AR3-acl-adv-3000]q
+[AR3]int g0/0/0
+[AR3-GigabitEthernet0/0/0]traffic-filter inbound acl 3000  //接口入方向调用ACL
+[AR3-GigabitEthernet0/0/0]q
+[AR3]
+```
 
+- 再次在Client客户端登录FTP测试
 
-
-
-
-
-
-
-
+![1586941613931](E:%5CBad%5CPictures%5CTypora%20Picture%5C1586941613931.png)
