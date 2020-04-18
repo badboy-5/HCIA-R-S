@@ -9,7 +9,7 @@
 ----
 
 参考博客：
-[【CSDN】]()
+[【CSDN】]( https://blog.csdn.net/qq_45668124/article/details/105605507 )
 
 # 复习回顾
 
@@ -125,7 +125,7 @@
 
 ![1586843142570](E:%5CBad%5CPictures%5CTypora%20Picture%5C1586843142570.png)
 
-# DNCP原理与配置
+# DHCP原理与配置
 
 动态主机配置协议DHCP（Dynamic Host Configuration Protocol），可以减少管理圆的工作量，避免用户手动配置网络参数时造成地址冲突
 
