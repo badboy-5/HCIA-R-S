@@ -451,8 +451,6 @@ FTPServer——>配置——>添加FTP文件目录——>启动
 
 - 在Client客户端登录FTP测试
 
-![1586941579423](E:%5CBad%5CPictures%5CTypora%20Picture%5C1586941579423.png)
-
 - 可以登录之后，在R3上设置ACL访问控制，禁止Client访问Server的FTP
 
 ```bash
@@ -468,4 +466,178 @@ FTPServer——>配置——>添加FTP文件目录——>启动
 
 - 再次在Client客户端登录FTP测试
 
-![1586941613931](E:%5CBad%5CPictures%5CTypora%20Picture%5C1586941613931.png)
+# NAT
+
+- 配置相关的接口IP地址
+
+> - PC1:
+> 	* IP：172.16.1.1
+> 	* 网关：172.16.1.254
+> - Server：
+> 	* IP：172.16.1.3
+> 	* 网关：172.16.1.254
+> - PC2:
+> 	* IP：172.17.1.2
+> 	* 网关：172.17.1.254
+> - PC3：
+> 	* IP：172.17.1.3
+> 	* 网关：172.17.1.254
+
+```bash
+# R1配置
+[R1]int g0/0/1
+[R1-GigabitEthernet0/0/1]ip ad 172.16.1.254 24
+[R1-GigabitEthernet0/0/1]int g0/0/2
+[R1-GigabitEthernet0/0/2]ip ad 172.17.1.254 24
+[R1-GigabitEthernet0/0/2]int g0/0/0
+[R1-GigabitEthernet0/0/0]ip ad 202.169.10.253 24
+[R1-GigabitEthernet0/0/0]q
+[R1]ip route-static 0.0.0.0 0.0.0.0 202.169.10.254  //配置静态路由
+
+# R2配置
+[R2]int g0/0/0
+[R2-GigabitEthernet0/0/0]ip ad 202.169.10.254 24
+[R2-GigabitEthernet0/0/0]int lo 0
+[R2-LoopBack0]ip ad 202.169.20.1 24
+[R2-LoopBack0]q
+[R2]
+```
+
+> - PC端测试与R2的接口IP的连通性，可以连通
+> - PC端测试与R2的环回口的连通性，不可以连通（没有做NAT）
+
+## 静态NAT
+
+```bash
+[R1]int g0/0/0
+[R1-GigabitEthernet0/0/0]nat static global 202.169.10.3 inside 172.16.1.1  //建立公网地址与私网地址的映射关系
+[R1-GigabitEthernet0/0/0]q
+```
+
+> - PC1与R2的环回口做连通性测试，可以连通
+> - PC2、PC3与R2的环回口做连通性测试，不可以连通
+
+## Easy IP
+
+```bash
+# 删除静态NAT
+[R1]int g0/0/0
+[R1-GigabitEthernet0/0/0]undo nat static global 202.169.10.3 inside 172.16.1.1
+
+# 调用ACL
+[R1]acl 2000  //配置ACL
+[R1-acl-basic-2000]rule permit  //配置允许所有通过
+[R1-acl-basic-2000]q
+[R1]int g0/0/0
+[R1-GigabitEthernet0/0/0]nat outbound 2000  //接口调用ACL
+[R1-GigabitEthernet0/0/0]q
+[R1]dis nat outbound  //查看
+ NAT Outbound Information:
+ -----------------------------------------------------------------------
+ Interface                     Acl     Address-group/IP/Interface   Type
+ -----------------------------------------------------------------------
+ GigabitEthernet0/0/0         2000        202.169.10.1            easyip 
+ -----------------------------------------------------------------------
+  Total : 1
+[R1]
+```
+
+> PC端与R2接口IP环回口地址做连通性测试，可以连通
+
+## 动态NAT
+
+```bash
+# 删除Easy IP配置
+[R1]int g0/0/0
+[R1-GigabitEthernet0/0/0]undo nat outbound 2000
+[R1-GigabitEthernet0/0/0]q
+[R1]undo acl 2000
+
+# 创建公网地址池
+# 创建名为1范围为202.169.10.2-202.169.10.50的地址池
+[R1]nat address-group 1 202.169.10.2 202.169.10.50
+# 创建名为2范围为202.169.10.100-202.169.10.200的地址池
+[R1]nat address-group 2 202.169.10.100 202.169.10.200
+
+# 配置ACL
+[R1]acl 2000
+[R1-acl-basic-2000]rule permit source 172.16.1.0 0.0.0.255
+[R1-acl-basic-2000]q
+[R1]acl 2001
+[R1-acl-basic-2001]rule permit source 172.17.1.0 0.0.0.255
+[R1-acl-basic-2001]q
+
+# 公网地址池调用ACL
+[R1]int g0/0/0
+[R1-GigabitEthernet0/0/0]nat outbound 2000 address-group 1 no-pat 
+[R1-GigabitEthernet0/0/0]nat outbound 2001 address-group 2 no-pat 
+[R1-GigabitEthernet0/0/0]
+
+# 查看地址池
+[R1]dis nat outbound 
+ NAT Outbound Information:
+ -----------------------------------------------------------------------
+ Interface                     Acl     Address-group/IP/Interface   Type
+ -----------------------------------------------------------------------
+ GigabitEthernet0/0/0         2000                1               no-pat
+ GigabitEthernet0/0/0         2001                2               no-pat
+ -----------------------------------------------------------------------
+  Total : 2
+```
+
+> PC端与R2做连通性测试，可以连通
+
+
+## NAT Server
+
+```bash
+# 删除动态NAT配置
+[R1]int g0/0/0
+[R1-GigabitEthernet0/0/0]undo nat outbound 2000 address-group 1 no-pat
+[R1-GigabitEthernet0/0/0]undo nat outbound 2001 address-group 2 no-pat
+[R1-GigabitEthernet0/0/0]q
+[R1]undo acl 2000
+[R1]undo acl 2001
+[R1]
+
+# 重新配置ACL，并调用
+[R1]acl 2000
+[R1-acl-basic-2000]rule permit 
+[R1-acl-basic-2000]q
+[R1]int g0/0/0
+[R1-GigabitEthernet0/0/0]nat outbound 2000
+[R1-GigabitEthernet0/0/0]q
+[R1]
+```
+
+- 配置NAT Server
+
+- 在Server上配置FTP服务器
+	* 服务信息——FTPserver
+	* 启动服务
+
+```bash
+# 配置ftp端口映射
+[R1]int g0/0/0
+[R1-GigabitEthernet0/0/0]nat server protocol tcp global current-interface ftp inside 172.16.1.3 ftp 
+Warning:The port 21 is well-known port. If you continue it may cause function failure.
+Are you sure to continue?[Y/N]:y  //Y确认
+[R1-GigabitEthernet0/0/0]
+
+# 删除环回口地址，添加Client设备，配置接口
+[R2]int lo 0
+[R2-LoopBack0]undo ip ad
+[R2-LoopBack0]q
+[R2]int g0/0/1
+[R2-GigabitEthernet0/0/1]ip ad 202.169.20.254 24
+```
+
+> - Client：
+> 	* IP：202.169.20.2
+> 	* 网关：202.169.20.254
+
+- 在Server上，对Client进行Ping测试，可以连通
+
+- 在Client上通过端口映射的公网IP，访问Server的FTP
+	* 客户端信息——服务器地址`202.169.10.253`
+	* 文件传输模式`PORT`——登录
