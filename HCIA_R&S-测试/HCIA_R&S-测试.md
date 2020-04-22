@@ -120,6 +120,7 @@
 
 # AR2配置
 [AR2]ospf 
+[AR2-ospf-1]import-route static  //引入静态
 [AR2-ospf-1]area 0
 [AR2-ospf-1-area-0.0.0.0]net 23.1.1.2 0.0.0.0
 [AR2]ip route-static 1.1.1.1 255.255.255.255 100.1.1.2  //配置静态
@@ -129,7 +130,6 @@
 
 # SW1配置
 [SW1]ospf 
-[SW1-ospf-1]import-route static  //引入静态
 [SW1-ospf-1]area 0
 [SW1-ospf-1-area-0.0.0.0]net 192.168.1.0 0.0.0.255
 [SW1-ospf-1-area-0.0.0.0]net 192.168.2.0 0.0.0.255
