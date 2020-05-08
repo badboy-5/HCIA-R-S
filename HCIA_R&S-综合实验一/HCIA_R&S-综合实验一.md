@@ -432,6 +432,10 @@ Warning:The port 21 is well-known port. If you continue it may cause function fa
 ilure.
 Are you sure to continue?[Y/N]:y  //Y确认
 [BoadeB-GigabitEthernet0/0/0]
+
+# ISP配置静态路由
+[ISP]ip route-static 192.168.0.0 27 202.102.24.98
+[ISP]ip route-static 192.168.0.32 27 120.202.249.194
 ```
 
 > - FTP_A与ISP运营商连通性测试

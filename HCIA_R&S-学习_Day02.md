@@ -265,7 +265,6 @@ cond1(no)->e
 ![1585204012630](E:%5CBad%5CPictures%5CTypora%20Picture%5C1585204012630.png)
 
 ```bash
-
 [SW1]dis vlan  //查看VLAN
 [SW1]vlan batch 10 20  //创建VLAN10、VLAN20
 [SW1]int e0/0/2  //进入e0/0/2接口
